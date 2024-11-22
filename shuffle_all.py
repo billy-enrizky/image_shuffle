@@ -51,7 +51,7 @@ def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple) -> None:
                 dst_file_path = os.path.join(
                     dst_folder, 
                     os.path.relpath(root, src_folder), 
-                    file.replace('.npy', '_shuffle.npy')
+                    file
                 )
                 os.makedirs(os.path.dirname(dst_file_path), exist_ok=True)
                 
