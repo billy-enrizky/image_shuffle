@@ -28,16 +28,16 @@ class Shuffler:
         self.shuffled = np.hstack(np.array(chunks, dtype=np.uint8))
 
     def shuffle(self, matrix: tuple) -> np.ndarray:
-        x = int(self.x / matrix[0])
+        x = int(self.x * matrix[0])
         x_list = list(range(x, self.x + 1, x))
 
-        y = int(self.y / matrix[1])
+        y = int(self.y * matrix[1])
         y_list = list(range(y, self.y + 1, y))
 
         self._split(x, y, x_list, y_list)
         random.shuffle(self._pieces)
 
-        self._generate_image(matrix[1])
+        self._generate_image(len(x_list))
         return self.shuffled
 
 def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple) -> None:
@@ -51,7 +51,7 @@ def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple) -> None:
                 dst_file_path = os.path.join(
                     dst_folder, 
                     os.path.relpath(root, src_folder), 
-                    file.replace('.npy', '_shuffle.npy')
+                    file
                 )
                 os.makedirs(os.path.dirname(dst_file_path), exist_ok=True)
                 
@@ -65,6 +65,6 @@ def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple) -> None:
 
 src_folder = 'data/top_5_compressed'
 dst_folder = 'data_shuffle/top_5_compressed'
-matrix = (4, 4)
+matrix = (1/4, 1/4)
 
 shuffle_npy_files(src_folder, dst_folder, matrix)
