@@ -28,6 +28,8 @@ class Shuffler:
         self.shuffled = np.hstack(np.array(chunks, dtype=np.uint8))
 
     def shuffle(self, matrix: tuple) -> np.ndarray:
+        print(f'Original shape: {self.original.shape}')
+        
         x = int(self.x / matrix[0])
         x_list = list(range(x, self.x + 1, x))
 
@@ -38,9 +40,37 @@ class Shuffler:
         random.shuffle(self._pieces)
 
         self._generate_image(matrix[1])
+        
+        print(f'Shuffled shape: {self.shuffled.shape}')
         return self.shuffled
 
-def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple) -> None:
+    def split_and_shuffle(self, t: int, direction: str) -> np.ndarray:
+        print(f'Original shape: {self.original.shape}')
+        
+        if direction == 'h':
+            y = int(self.y / (t + 1))
+            y_list = list(range(y, self.y + 1, y))
+            x_list = [self.x]
+            self._split(self.x, y, x_list, y_list)
+        elif direction == 'v':
+            x = int(self.x / (t + 1))
+            x_list = list(range(x, self.x + 1, x))
+            y_list = [self.y]
+            self._split(x, self.y, x_list, y_list)
+        else:
+            raise ValueError("Direction must be 'h' for horizontal or 'v' for vertical")
+
+        random.shuffle(self._pieces)
+
+        if direction == 'h':
+            self._generate_image(1)
+        elif direction == 'v':
+            self.shuffled = np.vstack(self._pieces)
+
+        print(f'Shuffled shape: {self.shuffled.shape}')
+        return self.shuffled
+
+def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple, split_params: tuple = None) -> None:
     total_files = sum([len(files) for r, d, files in os.walk(src_folder) if any(f.endswith('.npy') for f in files)])
     processed_files = 0
 
@@ -57,7 +87,10 @@ def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple) -> None:
                 
                 array = np.load(src_file_path)
                 shuffler = Shuffler(array)
-                shuffled_array = shuffler.shuffle(matrix)
+                if split_params:
+                    shuffled_array = shuffler.split_and_shuffle(*split_params)
+                else:
+                    shuffled_array = shuffler.shuffle(matrix)
                 np.save(dst_file_path, shuffled_array)
 
                 processed_files += 1
@@ -66,5 +99,6 @@ def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple) -> None:
 src_folder = 'data/top_5_compressed'
 dst_folder = 'data_shuffle/top_5_compressed'
 matrix = (4, 4)
+split_params = (1, 'h')  # Example: split into 2 equal parts horizontally and shuffle
 
-shuffle_npy_files(src_folder, dst_folder, matrix)
+shuffle_npy_files(src_folder, dst_folder, matrix, split_params)
