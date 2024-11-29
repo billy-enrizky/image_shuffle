@@ -60,14 +60,19 @@ class Shuffler:
         else:
             raise ValueError("Direction must be 'h' for horizontal or 'v' for vertical")
 
-        random.shuffle(self._pieces)
+        # Keep one part in the original position and rotate the others by 180n degrees
+        keep_index = random.randint(0, t)
+        for i in range(len(self._pieces)):
+            if i != keep_index:
+                n = random.choice([1,2])
+                self._pieces[i] = np.rot90(self._pieces[i], k=2*n)
 
         if direction == 'h':
-            self._generate_image(1)
-        elif direction == 'v':
             self.shuffled = np.vstack(self._pieces)
+        elif direction == 'v':
+            self.shuffled = np.hstack(self._pieces)
 
-        print(f'Shuffled shape: {self.shuffled.shape}')
+        print(f'Shuffled and rotated shape: {self.shuffled.shape}')
         return self.shuffled
 
 def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple, split_params: tuple = None) -> None:
@@ -79,12 +84,12 @@ def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple, split_par
             if file.endswith('.npy'):
                 src_file_path = os.path.join(root, file)
                 dst_file_path = os.path.join(
-                    dst_folder, 
-                    os.path.relpath(root, src_folder), 
+                    dst_folder,
+                    os.path.relpath(root, src_folder),
                     file
                 )
                 os.makedirs(os.path.dirname(dst_file_path), exist_ok=True)
-                
+
                 array = np.load(src_file_path)
                 shuffler = Shuffler(array)
                 if split_params:
@@ -99,6 +104,6 @@ def shuffle_npy_files(src_folder: str, dst_folder: str, matrix: tuple, split_par
 src_folder = 'data/top_5_compressed'
 dst_folder = 'data_shuffle/top_5_compressed'
 matrix = (4, 4)
-split_params = (1, 'h')  # Example: split into 2 equal parts horizontally and shuffle
+split_params = (1, 'v')  # Example: split into 2 equal parts horizontally and shuffle
 
 shuffle_npy_files(src_folder, dst_folder, matrix, split_params)
